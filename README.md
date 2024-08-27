@@ -1,0 +1,2 @@
+# WebSockets_with_FastAPI
+基于FasrAPI使用websockets建立长连接进行实时通讯
