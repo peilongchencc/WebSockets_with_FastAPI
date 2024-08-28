@@ -1,10 +1,9 @@
 # WebSockets_with_FastAPI
 
-基于FastAPI使用WebSockets建立长连接，实现客户端之间点对点的实时通讯。
+基于FastAPI使用WebSockets建立长连接，实现客户端之间点对点(消息私发，非广播)的实时通讯。
 
 - [WebSockets\_with\_FastAPI](#websockets_with_fastapi)
   - [前言:](#前言)
-  - [项目概述:](#项目概述)
   - [应用场景:](#应用场景)
   - [项目运行:](#项目运行)
     - [1. 安装FastAPI:](#1-安装fastapi)
@@ -30,11 +29,6 @@
 ## 前言:
 
 笔者使用FastAPI中静态文件加载的方式进行测试，大家可以根据个人习惯，将前端界面切换为自己喜欢的方式(Vue、React等)。
-
-
-## 项目概述:
-
-该项目主要功能是通过 WebSocket 实现多个客户端之间的实时聊天。客户端可以通过特定的 WebSocket 连接进行通信，并发送私密消息(点对点通信)给其他指定的客户端。
 
 
 ## 应用场景:
