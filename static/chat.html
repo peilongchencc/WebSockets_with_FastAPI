@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+</head>
+<body>
+    <h2>WebSocket Chat</h2>
+    
+    <div>
+        <label for="client-id">Client ID:</label>
+        <input type="text" id="client-id" placeholder="Enter your client ID">
+    </div>
+    <button onclick="connect()">Connect</button>
+    
+    <div id="chat-box" style="margin-top:20px; border:1px solid #000; padding:10px; height:200px; overflow-y:scroll;">
+        <p>Chat messages will appear here...</p>
+    </div>
+    
+    <div style="margin-top:10px;">
+        <input type="text" id="target-id" placeholder="Target Client ID">
+        <input type="text" id="message" placeholder="Enter message" onkeydown="checkEnter(event)">
+        <button onclick="sendMessage()">Send Message</button>
+    </div>
+
+    <script>
+        let ws;
+
+        function connect() {
+            const clientId = document.getElementById("client-id").value;
+            ws = new WebSocket(`ws://localhost:8000/ws/${clientId}`);
+
+            ws.onmessage = function(event) {
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML += `<p>${event.data}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            };
+
+            ws.onclose = function() {
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML += `<p>Disconnected from the server</p>`;
+            };
+        }
+
+        function sendMessage() {
+            const targetId = document.getElementById("target-id").value;
+            const message = document.getElementById("message").value;
+
+            // Display the sent message in the chat box
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<p>You to Client #${targetId}: ${message}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Send the message to the server
+            ws.send(`${targetId}:${message}`);
+
+            // Clear the message input field after sending
+            document.getElementById("message").value = "";
+        }
+
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
