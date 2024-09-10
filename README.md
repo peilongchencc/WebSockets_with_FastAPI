@@ -21,6 +21,9 @@
     - [使用默认端口(8000)启动服务:](#使用默认端口8000启动服务)
     - [使用自定义端口启动服务:](#使用自定义端口启动服务)
     - [动态调整端口号](#动态调整端口号)
+  - [WebSocket前端自动连接解惑(可选):](#websocket前端自动连接解惑可选)
+    - [前端页面手动/自动建立websocket连接:](#前端页面手动自动建立websocket连接)
+    - [前端页面关闭自动断开连接:](#前端页面关闭自动断开连接)
   - [WebSocket连接时间解释(可选):](#websocket连接时间解释可选)
   - [left消息显示解惑(可选):](#left消息显示解惑可选)
   - [websockets支持的数据传输格式(可选):](#websockets支持的数据传输格式可选)
@@ -154,6 +157,72 @@ var ws = new WebSocket(`ws://${window.location.host}/ws`);
 `window.location.host` 是一个标准的 JavaScript 属性，它会自动获取当前页面的主机名和端口号，因此可以动态生成 WebSocket 的 URL。
 
 这种方式可以让你的 WebSocket 客户端自动适应不同的端口或域名配置，无论你的 FastAPI 应用运行在哪个端口，WebSocket 连接都会正确地建立。例如，如果你的页面在 `http://localhost:8009` 访问，则 WebSocket 将自动连接到 `ws://localhost:8009/ws`。
+
+
+## WebSocket前端自动连接解惑(可选):
+
+### 前端页面手动/自动建立websocket连接:
+
+笔者的代码中，`WebSocket` 连接是通过 `@app.websocket("/ws/{client_id}")` 端点处理的。因此，客户端必须向该 WebSocket 端点发起请求才能建立 WebSocket 连接。
+
+在典型的 WebSocket 应用中，这个连接通常会在前端通过 JavaScript 来发起。前端代码通常会有一个类似这样的按钮，当点击后会执行 WebSocket 的连接操作：
+
+```javascript
+let ws = new WebSocket("ws://localhost:8000/ws/1001");  // 1001 是 client_id
+ws.onmessage = function(event) {
+    console.log("Message received: " + event.data);
+};
+```
+
+至于 "必须要点击连接按钮吗" 的问题，是指在前端是否必须通过一个按钮来发起连接，那么答案是“不一定”，连接的发起方式取决于前端的实现方式。
+
+你可以在前端页面加载时自动建立 WebSocket 连接，而无需依赖按钮事件，例如：
+
+```javascript
+window.onload = function() {
+    let ws = new WebSocket("ws://localhost:8000/ws/1001");  // 自动在页面加载时连接
+    ws.onmessage = function(event) {
+        console.log("Message received: " + event.data);
+    };
+};
+```
+
+总结：在你的后端代码中，WebSocket 连接是由 `/ws/{client_id}` 端点处理的，是否需要通过点击按钮来建立连接取决于前端的实现方式，而不是后端的逻辑。如果不想通过点击按钮连接，你可以在页面加载时自动发起连接。
+
+### 前端页面关闭自动断开连接:
+
+页面关闭时可以自动断开 WebSocket 连接。你可以在前端使用 `window.onbeforeunload` 或 `window.onunload` 事件来检测页面关闭或刷新，然后在事件处理函数中关闭 WebSocket 连接。
+
+例如：
+
+```javascript
+let ws;
+
+window.onload = function() {
+    // 创建 WebSocket 连接
+    ws = new WebSocket("ws://localhost:8000/ws/1");  // 1 是 client_id
+    ws.onmessage = function(event) {
+        console.log("Message received: " + event.data);
+    };
+};
+
+// 页面关闭或刷新时断开 WebSocket 连接
+window.onbeforeunload = function() {
+    if (ws) {
+        ws.close();  // 关闭 WebSocket 连接
+    }
+};
+```
+
+`ws.close()` 方法会向服务器发送关闭帧，通知服务器客户端要断开连接。服务器（你的 FastAPI 后端）会接收到断开事件，并通过 `WebSocketDisconnect` 异常来处理客户端断开后的清理逻辑。你的后端代码中已经正确处理了这个异常：
+
+```python
+except WebSocketDisconnect:
+    # 当客户端断开连接时，移除该连接并处理相关逻辑
+    manager.disconnect(client_id)
+```
+
+因此，页面关闭时通过 `ws.close()` 可以确保连接被正常断开，服务器也会进行相应的处理。
 
 
 ## WebSocket连接时间解释(可选):
