@@ -200,7 +200,7 @@ let ws;
 
 window.onload = function() {
     // 创建 WebSocket 连接
-    ws = new WebSocket("ws://localhost:8000/ws/1");  // 1 是 client_id
+    ws = new WebSocket("ws://localhost:8000/ws/1001");  // 1001 是 client_id
     ws.onmessage = function(event) {
         console.log("Message received: " + event.data);
     };
